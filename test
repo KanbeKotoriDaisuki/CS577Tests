@@ -1,0 +1,49 @@
+# Number of tests
+test_count=20
+
+if [ $# -ne 2 ] 
+then
+  echo "Usage: ./test.sh <homework_number> <executable_name>"
+  echo "Example: ./test.sh 1 ./h1_solution"
+  exit 1
+fi
+
+if [ ! -x $2 ]
+then
+	echo "Cannot execute file \"$2\"."
+	echo "Check if this file exists and is executable."
+	exit 1
+fi
+
+# Run tests
+i=1
+while [ $i -le $test_count ] && [ -e "./hw$1/test$i.in" ]
+do
+	rm -f ".\$temp.out"
+	touch ".\$temp.out"
+	eval "./$2 < ./hw$1/test$i.in > .\\\$temp.out" 2> /dev/null
+	if [ $? -ne 0 ]
+	then
+		echo "Test $i: Executable exited abnormally."
+		i=$((i + 1))
+		continue
+	fi
+	diff --brief ".\$temp.out" "./hw$1/test$i.out" > /dev/null
+	if [ $? -ne 0 ]
+	then
+		echo "Test $i: Wrong answer."
+		echo "Expected:"
+		cat -n "./hw$1/test$i.out"
+		echo "Received:"
+		cat -n ".\$temp.out"
+		i=$((i + 1))
+		continue
+	fi
+	echo "Test $i: Passed."
+	i=$((i + 1))
+done
+
+# Finish up
+echo "Finished testing."
+echo "Clean."
+rm -f ".\$temp.out"
